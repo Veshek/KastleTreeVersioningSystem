@@ -1,11 +1,5 @@
 BEGIN TRANSACTION;
 
-DROP TABLE IF EXISTS Tree;
-DROP TABLE IF EXISTS TreeVersion;
-DROP TABLE IF EXISTS Tag;
-DROP TABLE IF EXISTS TreeNode;
-DROP TABLE IF EXISTS TreeEdge;
-
 -- ========== 1) Tree ==========
 -- A "logical" tree (project/config).
 -- e.g., "MyApp" or "Configuration A"
