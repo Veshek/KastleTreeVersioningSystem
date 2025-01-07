@@ -138,37 +138,38 @@ class TreeVersion:
 ##############################################################################
 
 class Tag:
-    def __init__(self, id_, tree_version_id, tag_name, description, created_at):
+    def __init__(self, id_, tree_id, tree_version_id, tag_name, description, created_at):
         self.id = id_
+        self.tree_id = tree_id
         self.tree_version_id = tree_version_id
         self.tag_name = tag_name
         self.description = description
         self.created_at = created_at
 
     @classmethod
-    def create(cls, tree_version_id: int, tag_name: str, description: str="") -> "Tag":
+    def create(cls, tree_id: int, tree_version_id: int, tag_name: str, description: str="") -> "Tag":
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO Tag (tree_version_id, tag_name, description)
-            VALUES (?, ?, ?)
-        """, (tree_version_id, tag_name, description))
+            INSERT INTO Tag (tree_id, tree_version_id, tag_name, description)
+            VALUES (?, ?, ?, ?)
+        """, (tree_id, tree_version_id, tag_name, description))
         conn.commit()
-        return cls(cursor.lastrowid, tree_version_id, tag_name, description, datetime.now())
+        return cls(cursor.lastrowid, tree_id, tree_version_id, tag_name, description, datetime.now())
 
     @classmethod
     def get_by_name(cls, tag_name: str) -> "Tag" or None:
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT id, tree_version_id, tag_name, description, created_at
+            SELECT id,tree_id, tree_version_id, tag_name, description, created_at
             FROM Tag
             WHERE tag_name = ?
         """, (tag_name,))
         row = cursor.fetchone()
         if not row:
             return None
-        return cls(row["id"], row["tree_version_id"], row["tag_name"], row["description"], row["created_at"])
+        return cls(row["id"], row["tree_id"], row["tree_version_id"], row["tag_name"], row["description"], row["created_at"])
 
     @classmethod
     def get_version_id_for_tag(cls, tag_name: str) -> int or None:
@@ -181,7 +182,7 @@ class Tag:
         return None
 
     def __repr__(self):
-        return f"<Tag id={self.id}, version={self.tree_version_id}, tag='{self.tag_name}'>"
+        return f"<Tag id={self.id},tree = {self.tree_id}, version={self.tree_version_id}, tag='{self.tag_name}'>"
 
 
 ##############################################################################
@@ -363,7 +364,7 @@ class TreeEdge:
 
 class Tree:
     """
-    A "Tree" object is the *public* interface for end-users.
+    A "Tree" object is the public interface for end-users.
     Internally, each Tree has multiple 'TreeVersion' rows. 
     The user does not see TreeVersion, Tag, etc. 
     The user only calls Tree methods: create_tag, create_new_tree_version_from_tag, etc.
@@ -397,7 +398,10 @@ class Tree:
         row = cursor.fetchone()
         if not row:
             return None
-        return cls(row["id"], row["name"], row["created_at"])
+        
+        instance = cls(row["id"], row["name"], row["created_at"])
+        instance.working_version = TreeVersion.create(instance.id)
+        return instance 
 
     @classmethod
     def get_by_tag(cls, tag_name: str) -> "Tree":
@@ -434,16 +438,14 @@ class Tree:
         Reference the Checkpoint Version as Parent of new Version
         Set New Version as the new Checkpoint 
         """
-        if not self.working_version:
-            self.working_version = self.create_new_version()
+
         if not self.checkpoint_version:
             self.checkpoint_version = self.create_new_version()
+        else: 
+            self.checkpoint_version = self.create_new_version(self.checkpoint_version.id)
 
-        new_version = self.create_new_version(self.checkpoint_version.id)
-        new_version.clone_from(self.working_version.id)
-        self.checkpoint_version = new_version
-
-        return Tag.create(new_version.id, tag_name, description)
+        self.checkpoint_version.clone_from(self.working_version.id)
+        return Tag.create(self.id, self.checkpoint_version.id, tag_name, description)
 
     def create_new_tree_version_from_tag(self, tag_name: str) -> "Tree":
         """

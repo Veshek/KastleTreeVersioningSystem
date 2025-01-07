@@ -34,11 +34,16 @@ CREATE TABLE IF NOT EXISTS TreeVersion (
 CREATE TABLE IF NOT EXISTS Tag (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tree_version_id INTEGER NOT NULL,
+    tree_id INTEGER NOT NULL,
     tag_name TEXT NOT NULL,
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (tree_version_id) REFERENCES TreeVersion(id)
+    FOREIGN KEY (tree_version_id) REFERENCES TreeVersion(id),
+    FOREIGN KEY (tree_id) REFERENCES Tree(id),
+
+    -- Enforce that (tree_id, tag_name) is unique
+    UNIQUE (tree_id, tag_name)
 );
 
 -- ========== 4) TreeNode ==========
