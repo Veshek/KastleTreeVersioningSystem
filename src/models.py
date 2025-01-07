@@ -302,22 +302,6 @@ class TreeNode:
             ))
         return results
 
-    def update_data(self, new_data: dict):
-        conn = get_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            UPDATE TreeNode
-            SET data = ?
-            WHERE id = ?
-        """, (json.dumps(new_data), self.id))
-        conn.commit()
-        self.data = new_data
-
-    def delete(self):
-        conn = get_connection()
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM TreeNode WHERE id = ?", (self.id,))
-        conn.commit()
 
     def __repr__(self):
         return (f"<TreeNode id={self.id}, version={self.tree_version_id}, "
@@ -368,23 +352,6 @@ class TreeEdge:
             ))
         return results
 
-    def update_data(self, new_data: dict):
-        conn = get_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            UPDATE TreeEdge
-            SET data = ?
-            WHERE id = ?
-        """, (json.dumps(new_data), self.id))
-        conn.commit()
-        self.data = new_data
-
-    def delete(self):
-        conn = get_connection()
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM TreeEdge WHERE id = ?", (self.id,))
-        conn.commit()
-
     def __repr__(self):
         return (f"<TreeEdge id={self.id}, version={self.tree_version_id}, "
                 f"in={self.incoming_node_id}, out={self.outgoing_node_id}, data={self.data}>")
@@ -419,7 +386,7 @@ class Tree:
         return cls(cursor.lastrowid, name, datetime.now())
 
     @classmethod
-    def get(cls, tree_id: int) -> "Tree" or None:
+    def get(cls, tree_id: int) -> "Tree":
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute("""
@@ -433,7 +400,7 @@ class Tree:
         return cls(row["id"], row["name"], row["created_at"])
 
     @classmethod
-    def get_by_tag(cls, tag_name: str) -> "Tree" or None:
+    def get_by_tag(cls, tag_name: str) -> "Tree":
         """
         Return a 'Tree' object referencing the version indicated by tag_name.
         
@@ -562,7 +529,7 @@ class Tree:
             self.working_version.id = self.create_new_version()
         return TreeEdge.create(self.working_version.id, node_id_1, node_id_2, data)
 
-    def get_node(self, node_id: int) -> TreeNode or None:
+    def get_node(self, node_id: int) -> TreeNode:
         return TreeNode.get(node_id)
 
     def get_node_edges(self, node_id: int) -> list[TreeEdge]:
@@ -611,7 +578,7 @@ class Tree:
                     queue.append((c.id, lvl + 1))
         return results
 
-    def find_path(self, start_node_id: int, end_node_id: int) -> list[tuple[TreeNode, "TreeEdge"]]:
+    def find_path(self, start_node_id: int, end_node_id: int) -> list[tuple[TreeNode, TreeEdge]]:
         """
         BFS to find a path from start_node_id to end_node_id.
         Return list of (TreeNode, TreeEdge) pairs.
@@ -644,7 +611,7 @@ class Tree:
 
     def __repr__(self):
         vid = getattr(self, "working_version.id", None)
-        return f"<Tree id={self.id}, name='{self.name}', current_version={vid}>"
+        return f"<Tree id={self.id}, name='{self.name}', working_version={vid}>"
 
 ##############################################################################
 # End of single-file example
