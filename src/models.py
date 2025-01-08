@@ -33,7 +33,7 @@ class TreeVersion:
         return cls(cursor.lastrowid, tree_id, parent_version_id, datetime.now())
 
     @classmethod
-    def get(cls, version_id: int) -> "TreeVersion" or None:
+    def get(cls, version_id: int) -> "TreeVersion":
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute("""
@@ -47,7 +47,7 @@ class TreeVersion:
         return cls(row["id"], row["tree_id"], row["parent_version_id"], row["created_at"])
 
     @classmethod
-    def get_by_tag(cls, tag_name: str) -> "TreeVersion" or None:
+    def get_by_tag(cls, tag_name: str) -> "TreeVersion" :
         """
         Find which version the given tag references.
         """
@@ -158,7 +158,7 @@ class Tag:
         return cls(cursor.lastrowid, tree_id, tree_version_id, tag_name, description, datetime.now())
 
     @classmethod
-    def get_by_name(cls, tag_name: str) -> "Tag" or None:
+    def get_by_name(cls, tag_name: str) -> "Tag" :
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute("""
@@ -172,9 +172,9 @@ class Tag:
         return cls(row["id"], row["tree_id"], row["tree_version_id"], row["tag_name"], row["description"], row["created_at"])
 
     @classmethod
-    def get_version_id_for_tag(cls, tag_name: str) -> int or None:
+    def get_version_id_for_tag(cls, tag_name: str) -> int :
         """
-        Helper method that returns just the version_id for a given tag_name (or None if not found).
+        Helper method that returns just the version_id for a given tag_name (if not found).
         """
         t = cls.get_by_name(tag_name)
         if t:
@@ -208,7 +208,7 @@ class TreeNode:
         return cls(cursor.lastrowid, tree_version_id, data, datetime.now())
 
     @classmethod
-    def get(cls, node_id: int) -> "TreeNode" or None:
+    def get(cls, node_id: int) -> "TreeNode" :
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute("""
