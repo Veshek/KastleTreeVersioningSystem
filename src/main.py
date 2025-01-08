@@ -1,5 +1,9 @@
 from db.database import get_connection, initialize_db
-from src.models import Tree, TreeVersion, Tag, TreeNode, TreeEdge
+from src.Tree import Tree
+from src.TreeVersion import TreeVersion 
+from src.Tag import Tag
+from src.TreeNode import TreeNode
+from src.TreeEdge import TreeEdge
 
 def main():
      # 1) Initialize the database (run migrations)
