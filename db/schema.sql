@@ -45,8 +45,6 @@ CREATE TABLE IF NOT EXISTS Tag (
 -- Add index on Tag.tag_name
 CREATE INDEX idx_tag_name ON Tag(tag_name);
 
--- Add index on Tag.tree_version_id
-CREATE INDEX idx_tag_tree_version_id ON Tag(tree_version_id);
 
 -- ========== 4) TreeNode ==========
 CREATE TABLE IF NOT EXISTS TreeNode (
