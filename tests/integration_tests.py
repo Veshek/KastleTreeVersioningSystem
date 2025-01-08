@@ -14,7 +14,6 @@ are the same.
 
 @pytest.fixture(scope="function")
 def db_conn():
-    print('here')
     conn = get_connection()
     initialize_db(conn)
     yield conn
